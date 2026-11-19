@@ -10,17 +10,28 @@ type Payload<T> = { data: T; meta?: { next_cursor: string | null; limit: number 
 type Result<T> = { data: T | null; status: 'ok' | 'empty' | 'missing' | 'unavailable'; nextCursor?: string | null };
 
 export async function apiGet<T>(path: string): Promise<Result<T>> {
+  const endpoint = path.split('?')[0];
   try {
-    const configuredBase = API_INTERNAL_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
-    if (!configuredBase) return { data: null, status: 'unavailable' };
-    const apiBase = configuredBase.replace(/\/$/, '');
+    const configuredBase = API_INTERNAL_URL?.trim() || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
+    if (!configuredBase) {
+      console.error('[portfolio-api] API_INTERNAL_URL is not configured', { endpoint });
+      return { data: null, status: 'unavailable' };
+    }
+    const apiBase = configuredBase.replace(/\/+$/, '').replace(/\/api\/v1(?:\/public)?$/i, '');
     const response = await fetch(`${apiBase}/api/v1/public/${path}`, {
       headers: { accept: 'application/json' },
       cache: 'no-store',
       signal: AbortSignal.timeout(4500),
     });
     if (response.status === 404) return { data: null, status: 'missing' };
-    if (!response.ok) return { data: null, status: 'unavailable' };
+    if (!response.ok) {
+      console.error('[portfolio-api] Public endpoint returned an error', {
+        endpoint,
+        status: response.status,
+        requestId: response.headers.get('x-request-id'),
+      });
+      return { data: null, status: 'unavailable' };
+    }
     const payload = (await response.json()) as Payload<T>;
     const data = payload.data;
     return {
@@ -28,7 +39,11 @@ export async function apiGet<T>(path: string): Promise<Result<T>> {
       status: Array.isArray(data) && data.length === 0 ? 'empty' : 'ok',
       nextCursor: payload.meta?.next_cursor ?? null,
     };
-  } catch {
+  } catch (error) {
+    console.error('[portfolio-api] Public endpoint request failed', {
+      endpoint,
+      reason: error instanceof Error ? error.name : 'UnknownError',
+    });
     return { data: null, status: 'unavailable' };
   }
 }
