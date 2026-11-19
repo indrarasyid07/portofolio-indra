@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111510" />
+    <meta name="description" content="Portofolio programmer Indra Rasyid." />
+    <title>Indra Rasyid — Portofolio</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Lewati ke konten</a>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="wordmark" href="#home" aria-label="Indra Rasyid, beranda">
+          <span class="wordmark-mark">~/</span><span>indra.rasyid</span>
+        </a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          <span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true">+</span>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
+          <a href="#home" data-nav="home">Beranda</a>
+          <a href="#profile" data-nav="profile">Profil</a>
+          <a href="#experience" data-nav="experience">Pengalaman</a>
+          <a href="#education" data-nav="education">Pendidikan</a>
+          <a href="#projects" data-nav="projects">Proyek</a>
+          <a href="#stack" data-nav="stack">Tech stack</a>
+          <a class="nav-contact" href="#contact" data-nav="contact">Kontak <span aria-hidden="true">↗</span></a>
+        </nav>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <section class="view" data-view="home" aria-labelledby="home-title">
+          <div class="route-label"><span class="route-prompt">$</span> cd /home/indra</div>
+          <div class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">Portofolio programmer <span class="eyebrow-dot"></span> Indonesia</p>
+              <h1 id="home-title">Halo, saya<br /><span>Indra Rasyid.</span></h1>
+              <p class="hero-summary">Programmer yang membangun produk digital dengan teliti dan berorientasi pada pengguna.</p>
+              <div class="hero-actions">
+                <a class="button button-primary" href="#projects">Lihat proyek pilihan <span aria-hidden="true">↓</span></a>
+                <a class="text-link" href="#contact">Hubungi saya <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+            <figure class="portrait-frame">
+              <div class="portrait-art" aria-hidden="true">
+                <div class="portrait-grid"></div>
+                <div class="portrait-orbit portrait-orbit-one"></div>
+                <div class="portrait-orbit portrait-orbit-two"></div>
+                <div class="portrait-monogram">IR</div>
+                <span class="portrait-corner portrait-corner-top">IMG_01</span>
+                <span class="portrait-corner portrait-corner-bottom">FOTO PROFIL</span>
+              </div>
+              <figcaption><span>Foto profil</span><span class="caption-state">Ganti dengan foto Anda</span></figcaption>
+            </figure>
+          </div>
+
+          <section class="home-intro" aria-labelledby="home-intro-title">
+            <div class="section-kicker"><span>01</span><span>ringkasan</span></div>
+            <div class="home-intro-copy">
+              <h2 id="home-intro-title">Tentang saya</h2>
+              <p>Ruang singkat untuk memperkenalkan fokus, cara bekerja, dan jenis masalah yang ingin saya bantu selesaikan.</p>
+              <a class="text-link" href="#profile">Kenali profil saya <span aria-hidden="true">↗</span></a>
+            </div>
+          </section>
+
+          <section class="featured-work" aria-labelledby="featured-title">
+            <div class="section-heading">
+              <div><div class="section-kicker"><span>02</span><span>pilihan</span></div><h2 id="featured-title">Beberapa karya</h2></div>
+              <a class="text-link" href="#projects">Semua proyek <span aria-hidden="true">↗</span></a>
+            </div>
+            <a class="featured-row" href="#projects">
+              <span class="featured-index">01</span>
+              <span class="featured-title">Nama proyek unggulan</span>
+              <span class="featured-description">Ringkasan singkat tentang solusi dan kontribusi.</span>
+              <span class="featured-arrow" aria-hidden="true">↗</span>
+            </a>
+            <a class="featured-row" href="#projects">
+              <span class="featured-index">02</span>
+              <span class="featured-title">Proyek pilihan lainnya</span>
+              <span class="featured-description">Detail lengkap, peran, dan stack ada di halaman proyek.</span>
+              <span class="featured-arrow" aria-hidden="true">↗</span>
+            </a>
+          </section>
+
+          <footer class="site-footer">
+            <a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a>
+            <span>Portofolio programmer <span class="footer-year">© 2026</span></span>
+            <a class="text-link" href="#contact">Mari terhubung <span aria-hidden="true">↗</span></a>
+          </footer>
+        </section>
+
+        <section class="view" data-view="profile" aria-labelledby="profile-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> cat tentang.md</div>
+          <div class="page-intro"><p class="eyebrow">Profil</p><h1 id="profile-title">Latar belakang<br /><span>dan cara kerja.</span></h1><p class="page-summary">Halaman ini berisi cerita yang lebih lengkap tentang fokus, minat, dan pendekatan kerja.</p></div>
+          <div class="profile-layout">
+            <aside class="profile-aside"><div class="profile-stamp">IR</div><p class="mono-note">/profil/indra-rasyid</p><p class="aside-note">Tambahkan foto dan detail profil melalui panel admin.</p></aside>
+            <div class="prose"><p class="prose-lead">Perkenalan lengkap akan ditulis di sini setelah fokus bidang dan pengalaman dirangkum.</p><p>Gunakan ruang ini untuk menjelaskan hal yang paling penting bagi orang yang ingin bekerja sama: apa yang dikerjakan, bagaimana pendekatannya, dan bidang yang ingin dikembangkan.</p><h2>Fokus saat ini</h2><ul class="plain-list"><li>Bidang atau jenis produk yang diminati</li><li>Prinsip dalam menulis dan merawat kode</li><li>Jenis kolaborasi yang dicari</li></ul><a class="text-link" href="#experience">Lihat pengalaman <span aria-hidden="true">↗</span></a></div>
+          </div>
+          <div class="page-bottom-link"><span>Berikutnya</span><a href="#experience">Pengalaman kerja <span aria-hidden="true">→</span></a></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Profil</span><a class="text-link" href="#contact">Kontak <span aria-hidden="true">↗</span></a></footer>
+        </section>
+
+        <section class="view" data-view="experience" aria-labelledby="experience-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> ls pengalaman/</div>
+          <div class="page-intro"><p class="eyebrow">Perjalanan profesional</p><h1 id="experience-title">Pengalaman<br /><span>kerja.</span></h1><p class="page-summary">Riwayat pekerjaan, tanggung jawab, dan kontribusi yang relevan.</p></div>
+          <div class="timeline-list">
+            <article class="timeline-entry"><div class="timeline-date">20XX — sekarang</div><div class="timeline-body"><p class="entry-type">PENGALAMAN TERBARU</p><h2>Nama posisi</h2><p class="entry-org">Nama perusahaan atau organisasi</p><p>Ringkasan tanggung jawab, kontribusi, teknologi yang dipakai, dan hasil kerja.</p><div class="inline-tags"><span>Peran utama</span><span>Nama teknologi</span></div></div></article>
+            <article class="timeline-entry"><div class="timeline-date">20XX — 20XX</div><div class="timeline-body"><p class="entry-type">PENGALAMAN SEBELUMNYA</p><h2>Nama posisi</h2><p class="entry-org">Nama perusahaan atau organisasi</p><p>Jelaskan konteks pekerjaan dan bagian yang dikerjakan secara spesifik.</p><div class="inline-tags"><span>Kontribusi</span><span>Nama teknologi</span></div></div></article>
+          </div>
+          <p class="draft-note"><span class="note-mark">//</span> Entri saat ini adalah struktur contoh, bukan riwayat kerja final.</p>
+          <div class="page-bottom-link"><span>Berikutnya</span><a href="#education">Pendidikan & sertifikasi <span aria-hidden="true">→</span></a></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Pengalaman</span><a class="text-link" href="#contact">Kontak <span aria-hidden="true">↗</span></a></footer>
+        </section>
+
+        <section class="view" data-view="education" aria-labelledby="education-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> ls pendidikan/ sertifikasi/</div>
+          <div class="page-intro"><p class="eyebrow">Belajar & bertumbuh</p><h1 id="education-title">Pendidikan<br /><span>& sertifikasi.</span></h1><p class="page-summary">Pendidikan formal, kursus, dan sertifikasi tersusun terpisah agar mudah ditinjau.</p></div>
+          <section class="record-section" aria-labelledby="formal-title"><div class="record-heading"><span class="section-kicker"><span>01</span><span>formal</span></span><h2 id="formal-title">Pendidikan</h2></div><article class="record-row"><div class="record-year">20XX — 20XX</div><div><h3>Nama program atau gelar</h3><p class="entry-org">Nama institusi</p><p>Tambahkan fokus studi atau keterangan relevan.</p></div></article></section>
+          <section class="record-section" aria-labelledby="courses-title"><div class="record-heading"><span class="section-kicker"><span>02</span><span>nonformal</span></span><h2 id="courses-title">Kursus & sertifikasi</h2></div><article class="record-row"><div class="record-year">20XX</div><div><h3>Nama kursus atau sertifikasi</h3><p class="entry-org">Penerbit atau lembaga</p><p>Tautan bukti sertifikat dapat disertakan jika tersedia.</p></div></article><article class="record-row"><div class="record-year">20XX</div><div><h3>Nama kursus atau sertifikasi</h3><p class="entry-org">Penerbit atau lembaga</p><p>Informasi kredensial akan tampil di sini.</p></div></article></section>
+          <p class="draft-note"><span class="note-mark">//</span> Semua nama dan tahun di halaman ini merupakan placeholder.</p>
+          <div class="page-bottom-link"><span>Berikutnya</span><a href="#projects">Proyek <span aria-hidden="true">→</span></a></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Pendidikan</span><a class="text-link" href="#contact">Kontak <span aria-hidden="true">↗</span></a></footer>
+        </section>
+
+        <section class="view" data-view="projects" aria-labelledby="projects-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> ls proyek/</div>
+          <div class="page-intro"><p class="eyebrow">Karya terpilih</p><h1 id="projects-title">Proyek yang<br /><span>pernah dikerjakan.</span></h1><p class="page-summary">Setiap proyek menjelaskan masalah, peran, hasil, dan teknologi yang digunakan.</p></div>
+          <div class="project-list">
+            <details class="project-detail" open><summary><span class="project-number">01</span><span class="project-name">Nama proyek</span><span class="project-kind">WEB APP</span><span class="project-toggle" aria-hidden="true">+</span></summary><div class="project-body"><p>Ringkasan masalah dan solusi yang dibangun. Tambahkan hasil atau dampak jika ada.</p><div class="project-meta"><div><span class="meta-label">PERAN</span><p>Kontribusi dalam proyek</p></div><div><span class="meta-label">TECH STACK</span><div class="inline-tags"><span>Framework</span><span>Bahasa</span><span>Database</span></div></div><div><span class="meta-label">TAUTAN</span><p>Demo · Repository</p></div></div></div></details>
+            <details class="project-detail"><summary><span class="project-number">02</span><span class="project-name">Nama proyek lainnya</span><span class="project-kind">API / TOOL</span><span class="project-toggle" aria-hidden="true">+</span></summary><div class="project-body"><p>Ceritakan kebutuhan yang ditangani dan apa yang menjadi tanggung jawab Anda.</p><div class="project-meta"><div><span class="meta-label">PERAN</span><p>Kontribusi dalam proyek</p></div><div><span class="meta-label">TECH STACK</span><div class="inline-tags"><span>Bahasa</span><span>Framework</span></div></div><div><span class="meta-label">TAUTAN</span><p>Demo · Repository</p></div></div></div></details>
+            <details class="project-detail"><summary><span class="project-number">03</span><span class="project-name">Kontribusi open source</span><span class="project-kind">OPEN SOURCE</span><span class="project-toggle" aria-hidden="true">+</span></summary><div class="project-body"><p>Jelaskan kontribusi yang dibuat, proyek asal, dan tautan ke perubahan terkait.</p><div class="project-meta"><div><span class="meta-label">PERAN</span><p>Kontributor</p></div><div><span class="meta-label">TECH STACK</span><div class="inline-tags"><span>Tools</span><span>Bahasa</span></div></div><div><span class="meta-label">TAUTAN</span><p>Repository</p></div></div></div></details>
+          </div>
+          <p class="draft-note"><span class="note-mark">//</span> Nama proyek, peran, dan stack perlu diganti dengan data asli.</p>
+          <div class="page-bottom-link"><span>Berikutnya</span><a href="#stack">Tools & tech stack <span aria-hidden="true">→</span></a></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Proyek</span><a class="text-link" href="#contact">Kontak <span aria-hidden="true">↗</span></a></footer>
+        </section>
+
+        <section class="view" data-view="stack" aria-labelledby="stack-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> cat tech-stack.json</div>
+          <div class="page-intro"><p class="eyebrow">Kemampuan teknis</p><h1 id="stack-title">Tools & tech<br /><span>stack.</span></h1><p class="page-summary">Daftar umum teknologi yang digunakan. Stack di tiap proyek tetap dicantumkan secara khusus di halaman proyek.</p></div>
+          <div class="stack-list">
+            <section class="stack-group"><div class="stack-index">01</div><div class="stack-main"><h2>Frontend</h2><p>Teknologi untuk membangun antarmuka web.</p></div><div class="stack-items"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Framework pilihan</span></div></section>
+            <section class="stack-group"><div class="stack-index">02</div><div class="stack-main"><h2>Backend & data</h2><p>Teknologi untuk layanan, API, dan penyimpanan data.</p></div><div class="stack-items"><span>Bahasa pilihan</span><span>Framework pilihan</span><span>Database</span><span>REST API</span></div></section>
+            <section class="stack-group"><div class="stack-index">03</div><div class="stack-main"><h2>Tools & workflow</h2><p>Perangkat yang membantu kolaborasi dan pengembangan.</p></div><div class="stack-items"><span>Git</span><span>Linux</span><span>Editor kode</span><span>Container tools</span></div></section>
+          </div>
+          <p class="draft-note"><span class="note-mark">//</span> Contoh kategori; isi teknologi aktual setelah stack diputuskan.</p>
+          <div class="page-bottom-link"><span>Berikutnya</span><a href="#contact">Kontak <span aria-hidden="true">→</span></a></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Tech stack</span><a class="text-link" href="#contact">Kontak <span aria-hidden="true">↗</span></a></footer>
+        </section>
+
+        <section class="view" data-view="contact" aria-labelledby="contact-title" hidden>
+          <div class="route-label"><span class="route-prompt">$</span> ./hubungi.sh</div>
+          <div class="page-intro"><p class="eyebrow">Mari terhubung</p><h1 id="contact-title">Ada yang ingin<br /><span>dibicarakan?</span></h1><p class="page-summary">Untuk peluang kerja, proyek, atau kolaborasi, hubungi saya melalui kanal yang tersedia.</p></div>
+          <div class="contact-layout"><div class="contact-aside"><p class="contact-prompt">$ echo $CONTACT</p><h2>Kontak langsung</h2><p>Alamat email dan tautan profesional akan ditambahkan setelah dikonfirmasi.</p><a class="text-link" href="#home">Kembali ke beranda <span aria-hidden="true">↗</span></a></div><form class="contact-form" id="contact-form"><div class="form-heading"><span class="section-kicker"><span>01</span><span>pesan</span></span><h2>Kirim pesan</h2></div><label for="sender-name">Nama</label><input id="sender-name" name="name" autocomplete="name" required placeholder="Nama Anda" /><label for="sender-email">Email</label><input id="sender-email" name="email" type="email" autocomplete="email" required placeholder="nama@email.com" /><label for="sender-message">Pesan</label><textarea id="sender-message" name="message" rows="4" required placeholder="Apa yang ingin Anda diskusikan?"></textarea><button class="button button-primary" type="submit">Kirim pesan</button><p class="form-status" id="form-status" aria-live="polite"></p></form></div>
+          <footer class="site-footer"><a class="wordmark footer-wordmark" href="#home"><span class="wordmark-mark">~/</span><span>indra.rasyid</span></a><span>Kontak</span><a class="text-link" href="#home">Kembali ke atas <span aria-hidden="true">↑</span></a></footer>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

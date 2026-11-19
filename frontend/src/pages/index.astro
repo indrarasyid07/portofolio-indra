@@ -1,0 +1,119 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { apiGet, apiGetAll, errorMessage, listData, type Contact, type Education, type Experience, type Profile, type Project, type SkillCategory } from '../lib/api';
+
+const [profileResult, projectsResult, contactResult, experienceResult, educationResult, skillsResult] = await Promise.all([
+  apiGet<Profile>('profile'),
+  apiGetAll<Project>('projects'),
+  apiGet<Contact>('contact'),
+  apiGetAll<Experience>('experiences'),
+  apiGetAll<Education>('education'),
+  apiGet<SkillCategory[]>('skills'),
+]);
+
+const profile = profileResult.data;
+const projects = listData(projectsResult);
+const experiences = listData(experienceResult);
+const education = listData(educationResult);
+const skillCategories = listData(skillsResult);
+const featured = projects.find((item) => item.featured) ?? projects[0];
+const moreProjects = projects.filter((item) => item.id !== featured?.id).slice(0, 2);
+const experiencePreview = experiences.slice(0, 2);
+const careerPreview = experiences.slice(0, 5);
+const educationPreview = education.slice(0, 3);
+const skillPreview = skillCategories.slice(0, 5).map((category) => ({ ...category, skills: category.skills.slice(0, 5) }));
+const contact = contactResult.data;
+
+function shortMonth(month: number | null): string {
+  return month ? new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(2020, month - 1, 1)) : '';
+}
+
+function careerPeriod(item: Experience): string {
+  const start = `${shortMonth(item.start_month)}${item.start_month ? ' ' : ''}${item.start_year}`;
+  const end = item.end_year === null
+    ? 'Sekarang'
+    : `${shortMonth(item.end_month)}${item.end_month ? ' ' : ''}${item.end_year}`;
+  return `${start} — ${end}`;
+}
+
+function educationPeriod(item: Education): string {
+  if (item.start_year === null && item.end_year === null) return 'Tahun tidak dicantumkan';
+  const start = item.start_year === null ? '—' : `${shortMonth(item.start_month)}${item.start_month ? ' ' : ''}${item.start_year}`;
+  const end = item.end_year === null ? (item.start_year === null ? '—' : 'Sekarang') : `${shortMonth(item.end_month)}${item.end_month ? ' ' : ''}${item.end_year}`;
+  return start === end ? start : `${start} — ${end}`;
+}
+
+function educationKind(kind: Education['kind']): string {
+  return kind === 'formal' ? 'PENDIDIKAN' : kind === 'course' ? 'KURSUS' : 'SERTIFIKASI';
+}
+
+function employmentLabel(value: string): string {
+  const labels: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Kontrak', internship: 'Magang', freelance: 'Freelance', other: 'Lainnya' };
+  return labels[value] ?? value.replaceAll('_', ' ');
+}
+---
+
+<AppLayout title={profile ? `${profile.name} — Portofolio` : 'Portofolio Indra Rasyid'} description={profile?.intro ?? 'Portofolio Indra Rasyid: profil, pengalaman, pendidikan, proyek, dan teknologi yang dipublikasikan.'} image={profile?.portrait?.url}>
+  <div class="command-line"><span class="prompt"><span class="term-user">indra@portfolio</span><span class="term-sep">:</span><span class="term-path">~/</span></span><span class="term-sep">$</span> whoami</div>
+  <section class="home-hero page-block">
+    <div class="hero-copy">
+      <div class="eyebrow"><span>01</span> HELLO, WORLD</div>
+      {profile ? <>
+        <h1>Halo, saya<br /><em>{profile.name}.</em></h1>
+        <p class="hero-intro">{profile.intro}</p>
+        <div class="hero-ctas"><a class="btn btn-primary" href="#proyek">Lihat proyek <span>↗</span></a><a class="text-link" href="/profil">Profil lengkap ↗</a></div>
+        <div class="hero-meta"><span><i class="status-dot"></i>{profile.availability ?? 'Status belum dicantumkan'}</span><span>{profile.location ?? 'Lokasi belum dicantumkan'}</span></div>
+      </> : <>
+        <h1>Portofolio<br /><em>Indra Rasyid.</em></h1>
+        <p class="hero-intro">Data engineering dan backend development, dari pipeline hingga layanan yang siap digunakan.</p>
+        <div class="hero-ctas"><a class="btn btn-primary" href="#proyek">Lihat proyek <span>↗</span></a><a class="text-link" href="/profil">Profil lengkap ↗</a></div>
+        {profileResult.status === 'unavailable' && <p class="empty-message">{errorMessage(profileResult.status, 'profil')}</p>}
+      </>}
+    </div>
+    <div class="terminal-visual" aria-label="Direktori portofolio">
+      <div class="window-chrome"><span class="window-dots"><i></i><i></i><i></i></span><span>~ / workspace</span><span>— □ ×</span></div>
+      <div class="terminal-body">
+        <p><span class="accent">➜</span> <span class="soft">~</span> ls -la portfolio/</p>
+        <p class="terminal-muted">{String(projects.length).padStart(2, '0')} proyek · {String(experiences.length).padStart(2, '0')} riwayat · {String(education.length).padStart(2, '0')} pendidikan</p>
+        <a href="/profil"><span>drwxr-xr-x</span> profile.md <b>↗</b></a>
+        <a href="#riwayat"><span>drwxr-xr-x</span> work-history.log <b>↗</b></a>
+        <a href="#proyek"><span>drwxr-xr-x</span> projects/ <b>↗</b></a>
+        <a href="#teknologi"><span>drwxr-xr-x</span> tech-stack.yml <b>↗</b></a>
+        <div class="terminal-divider"></div>
+        <p><span class="accent">➜</span> <span class="soft">~</span> cat status.txt</p>
+        <p class="terminal-output">{profile?.role ?? 'Data Engineer · Backend Developer'}</p>
+      </div>
+      <div class="terminal-bottom"><span>UTF-8</span><span>INDONESIA / ONLINE</span></div>
+    </div>
+  </section>
+
+  {profile?.headline && <section class="home-statement section-rule"><div class="side-caption"><span class="line-label"><b>02</b> FOKUS SAAT INI</span></div><div><h2>{profile.headline}</h2><p>{profile.about || profile.intro}</p><a class="text-link" href="/profil">Baca profil lengkap ↗</a></div></section>}
+
+  <section class="home-projects section-rule" id="proyek">
+    <div class="section-heading"><div><div class="eyebrow"><span>03</span> PILIHAN PROYEK</div><h2>Hasil kerja <em>terpilih.</em></h2></div><a class="text-link" href="/proyek">Semua proyek ↗</a></div>
+    {featured ? <a class="featured-row" href={`/proyek/${featured.slug}`}><div class="featured-image">{featured.cover?.url ? <img src={featured.cover.url} alt={featured.cover.alt_text} loading="lazy" /> : <div class="gallery-empty">Gambar proyek belum tersedia</div>}</div><div class="featured-desc"><span class="meta-top">PROYEK PILIHAN / {featured.year}</span><h3>{featured.title}</h3><p>{featured.summary}</p><div class="inline-chips">{featured.stack_labels.slice(0, 3).map((tag) => <span>{tag}</span>)}</div><span class="featured-action">Lihat studi kasus ↗</span></div></a> : <p class="empty-message">{errorMessage(projectsResult.status, 'proyek')}</p>}
+    {moreProjects.length > 0 && <div class="home-small-projects">{moreProjects.map((item, index) => <a href={`/proyek/${item.slug}`}><span class="muted-index">0{index + 2} / {item.project_type} · {item.year}</span><strong>{item.title}</strong><span>↗</span></a>)}</div>}
+  </section>
+
+  <section class="home-experience section-rule" id="pengalaman">
+    <div class="section-heading"><div><div class="eyebrow"><span>04</span> PENGALAMAN</div><h2>Kontribusi <em>terbaru.</em></h2></div><a class="text-link" href="/pengalaman">Semua pengalaman ↗</a></div>
+    {experiencePreview.length ? <div class="home-experience-list">{experiencePreview.map((item, index) => <article class="home-experience-item"><div class="home-experience-index">{String(index + 1).padStart(2, '0')}</div><div class="home-experience-copy"><span class="meta-top">{item.organization} / {careerPeriod(item)}</span><h3>{item.role}</h3><p>{item.summary}</p>{item.stack_labels.length > 0 && <div class="inline-chips">{item.stack_labels.slice(0, 5).map((label) => <span>{label}</span>)}</div>}</div></article>)}</div> : <p class="empty-message">{errorMessage(experienceResult.status, 'pengalaman')}</p>}
+  </section>
+
+  <section class="home-career section-rule" id="riwayat">
+    <div class="section-heading"><div><div class="eyebrow"><span>05</span> RIWAYAT KERJA</div><h2>Perjalanan <em>profesional.</em></h2></div><a class="text-link" href="/riwayat-pekerjaan">Riwayat lengkap ↗</a></div>
+    {careerPreview.length ? <ol class="home-career-list">{careerPreview.map((item) => <li><time>{careerPeriod(item)}</time><div><strong>{item.role}</strong><span>{item.organization} · {employmentLabel(item.employment_type)}</span></div></li>)}</ol> : <p class="empty-message">{errorMessage(experienceResult.status, 'riwayat kerja')}</p>}
+  </section>
+
+  <section class="home-education section-rule" id="pendidikan">
+    <div class="section-heading"><div><div class="eyebrow"><span>06</span> PENDIDIKAN & SERTIFIKASI</div><h2>Belajar <em>berkelanjutan.</em></h2></div><a class="text-link" href="/pendidikan">Semua pendidikan ↗</a></div>
+    {educationPreview.length ? <div class="home-education-list">{educationPreview.map((item) => <article><span class="home-education-kind">{educationKind(item.kind)}</span><div><h3>{item.title}</h3><p>{item.institution}</p></div><time>{educationPeriod(item)}</time></article>)}</div> : <p class="empty-message">{errorMessage(educationResult.status, 'pendidikan dan sertifikasi')}</p>}
+  </section>
+
+  <section class="home-tech section-rule" id="teknologi">
+    <div class="section-heading"><div><div class="eyebrow"><span>07</span> TECH STACK</div><h2>Perangkat <em>kerja.</em></h2></div><a class="text-link" href="/tech-stack">Semua teknologi ↗</a></div>
+    {skillPreview.length ? <div class="home-tech-list">{skillPreview.map((category) => <div class="home-tech-row"><h3>{category.label}</h3><div class="inline-chips">{category.skills.map((skill) => <span>{skill.name}</span>)}</div></div>)}</div> : <p class="empty-message">{errorMessage(skillsResult.status, 'tech stack')}</p>}
+  </section>
+
+  <section class="bottom-cta section-rule"><span>SIAP UNTUK LANGKAH BERIKUTNYA?</span><h2>Mari buat sesuatu <em>yang berguna.</em></h2>{contact?.email ? <a class="btn btn-outline" href={`mailto:${contact.email}`}>Mulai percakapan ↗</a> : <a class="btn btn-outline" href="/kontak">Lihat kanal kontak ↗</a>}</section>
+</AppLayout>

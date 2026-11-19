@@ -1,0 +1,46 @@
+---
+import '../styles/site.css';
+interface Props { title: string; description: string; canonical?: string; image?: string | null; noindex?: boolean; omitCanonical?: boolean }
+const { title, description, canonical, image, noindex = false, omitCanonical = false } = Astro.props;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:4321').toString();
+const socialImageUrl = new URL(image ?? '/og-default.png', canonicalUrl).toString();
+const path = Astro.url.pathname;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Content-Type-Options', 'nosniff');
+Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+Astro.response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+Astro.response.headers.set('X-Frame-Options', 'DENY');
+if (import.meta.env.PROD) Astro.response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+const links = [
+  ['/','Beranda','home'], ['/profil','Profil','profile'], ['/pengalaman','Pengalaman','experience'], ['/riwayat-pekerjaan','Riwayat kerja','jobs'], ['/pendidikan','Pendidikan','education'], ['/proyek','Proyek','projects'], ['/tech-stack','Tech stack','tech'], ['/kontak','Kontak','contact'],
+];
+const active = path.startsWith('/proyek') ? 'projects' : ({'/':'home','/profil':'profile','/pengalaman':'experience','/riwayat-pekerjaan':'jobs','/pendidikan':'education','/tech-stack':'tech','/kontak':'contact'} as Record<string,string>)[path];
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} /><meta name="theme-color" content="#0e140f" />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}{!omitCanonical && <link rel="canonical" href={canonicalUrl} />}
+    <meta property="og:type" content="website" /><meta property="og:locale" content="id_ID" /><meta property="og:title" content={title} /><meta property="og:description" content={description} /><meta property="og:url" content={canonicalUrl} /><meta property="og:image" content={socialImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content={title} /><meta name="twitter:description" content={description} /><meta name="twitter:image" content={socialImageUrl} /><title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+    <header class="site-header"><div class="shell header-inner">
+      <a class="logo" href="/" aria-label="Beranda portofolio"><span class="logo-glyph">~/</span><span>indra.rasyid</span></a>
+      <button id="mobile-menu-toggle" class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">☰ Menu</button>
+      <nav class="primary-nav" id="main-nav" aria-label="Navigasi utama">{links.map(([href,label,key]) => <a href={href} data-nav={key} aria-current={active === key ? 'page' : undefined} class={key === 'contact' ? 'nav-contact' : undefined}>{label}{key === 'contact' && ' ↗'}</a>)}</nav>
+    </div></header>
+    <div class="shell header-utility"><span>GNU / PORTFOLIO <span class="ready">●</span> SYSTEM READY</span><span>INDONESIA &nbsp; / &nbsp; LOCAL SESSION</span></div>
+    <main class="shell" id="main-content" tabindex="-1"><slot /></main>
+    <footer class="shell site-footer"><a href="/" class="footer-logo"><b>~/</b> <span>Indra Rasyid</span></a><span>PORTFOLIO {new Date().getFullYear()} · MADE WITH INTENT</span><div class="footer-links"><a href="/kontak">Kontak ↗</a><a href="/admin/login">Admin ↗</a><a href="#main-content">↑ Kembali ke atas</a></div></footer>
+    <script>
+      const menu = document.getElementById('mobile-menu-toggle');
+      const nav = document.getElementById('main-nav');
+      menu?.addEventListener('click', () => { const opened = menu.getAttribute('aria-expanded') === 'true'; menu.setAttribute('aria-expanded', String(!opened)); nav?.classList.toggle('nav-open', !opened); });
+      nav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => { menu?.setAttribute('aria-expanded', 'false'); nav.classList.remove('nav-open'); }));
+      document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { menu?.setAttribute('aria-expanded', 'false'); nav?.classList.remove('nav-open'); menu?.focus(); } });
+    </script>
+  </body>
+</html>

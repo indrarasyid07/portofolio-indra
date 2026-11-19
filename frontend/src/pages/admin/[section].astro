@@ -1,0 +1,70 @@
+---
+import AuthLayout from '../../layouts/AuthLayout.astro';
+import { LayoutDashboard, FolderKanban, BriefcaseBusiness, GraduationCap, Braces, Settings, ExternalLink, LogOut, CircleUserRound } from '@lucide/astro';
+import { requireAdminPage } from '../../lib/admin-auth';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Content-Type-Options', 'nosniff');
+Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+Astro.response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+Astro.response.headers.set('X-Frame-Options', 'DENY');
+if (import.meta.env.PROD) {
+  Astro.response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+}
+
+const section = Astro.params.section ?? '';
+const sectionInfo: Record<string, { title: string; api: string; kind: string }> = {
+  profil: { title: 'Profil', api: 'profile', kind: 'profile' },
+  proyek: { title: 'Proyek', api: 'projects', kind: 'projects' },
+  pengalaman: { title: 'Pengalaman kerja', api: 'experiences', kind: 'experiences' },
+  pendidikan: { title: 'Pendidikan, course & sertifikasi', api: 'education', kind: 'education' },
+  'tech-stack': { title: 'Tools & tech stack', api: 'skills', kind: 'skills' },
+};
+const current = sectionInfo[section];
+if (!current) return new Response(null, { status: 404 });
+const auth = await requireAdminPage(Astro.request, Astro.redirect);
+if (auth instanceof Response) return auth;
+if (auth.serviceError) Astro.response.status = 503;
+---
+<AuthLayout title={`${current.title} | Admin Portofolio`} description={`Kelola ${current.title.toLowerCase()} portofolio.`}>
+  <div class="admin-layout admin-dashboard-layout" data-section={current.kind} data-api={current.api}>
+    <aside class="admin-sidebar" aria-label="Navigasi admin">
+      <a class="logo admin-brand" href="/admin"><span class="logo-glyph">~/</span> indra.rasyid</a>
+      <p class="sidebar-caption">ROOT / CONTENT MANAGEMENT</p>
+      <nav class="admin-nav" aria-label="Navigasi admin">
+        <a href="/admin"><LayoutDashboard size={16} stroke-width={1.7} aria-hidden="true" /><span>Overview</span><b>01</b></a>
+        <a href="/admin/proyek" aria-current={section === 'proyek' ? 'page' : undefined}><FolderKanban size={16} stroke-width={1.7} aria-hidden="true" /><span>Proyek</span><b>02</b></a>
+        <a href="/admin/pengalaman" aria-current={section === 'pengalaman' ? 'page' : undefined}><BriefcaseBusiness size={16} stroke-width={1.7} aria-hidden="true" /><span>Pengalaman / karier</span><b>03</b></a>
+        <a href="/admin/pendidikan" aria-current={section === 'pendidikan' ? 'page' : undefined}><GraduationCap size={16} stroke-width={1.7} aria-hidden="true" /><span>Pendidikan</span><b>04</b></a>
+        <a href="/admin/tech-stack" aria-current={section === 'tech-stack' ? 'page' : undefined}><Braces size={16} stroke-width={1.7} aria-hidden="true" /><span>Tech stack</span><b>05</b></a>
+        <a href="/admin/profil" aria-current={section === 'profil' ? 'page' : undefined}><Settings size={16} stroke-width={1.7} aria-hidden="true" /><span>Profil & pengaturan</span><b>06</b></a>
+      </nav>
+      <div class="sidebar-bottom"><a href="/" target="_blank" rel="noopener noreferrer"><ExternalLink size={14} stroke-width={1.8} aria-hidden="true" /> Buka portofolio</a><button type="button" id="logout-button"><LogOut size={14} stroke-width={1.8} aria-hidden="true" /> Keluar dari panel</button><span class="notice-small"><CircleUserRound size={13} stroke-width={1.8} aria-hidden="true" /> {auth.username} / ADMIN SESSION</span></div>
+    </aside>
+    <section class="admin-main">
+      <header class="admin-topline"><span>~/admin/{section} <span class="online">● LOCAL CONNECTED</span></span><span>CONTENT WORKSPACE / v1.0</span></header>
+      <div class="admin-content" id="admin-main-content" tabindex="-1">
+        <div class="admin-welcome"><div><p class="eyebrow"><span>COLLECTION /</span> {current.api.toUpperCase()}</p><h1>{current.title}<span class="accent-dot">.</span></h1><p class="admin-intro">Kelola informasi portofolio. Perubahan disimpan ke backend dan tidak tampil publik sebelum dipublikasikan.</p></div><div class="admin-toolbar"><a class="btn btn-outline btn-small" href="/" target="_blank" rel="noopener noreferrer">Lihat situs <ExternalLink size={14} stroke-width={1.8} aria-hidden="true" /></a></div></div>
+        <div id="admin-message" class="admin-message" role="status" aria-live="polite" hidden></div>
+        <div id="admin-editor" class="admin-editor" hidden></div>
+        <section id="admin-list-panel" class="admin-list-panel" aria-label={`Daftar ${current.title}`}>
+          <div class="admin-list-toolbar">
+            <div class="admin-filters" id="admin-filters">
+              <label class="admin-search-label">Cari<input id="admin-search" type="search" placeholder={current.kind === 'experiences' ? 'Cari jabatan atau organisasi' : current.kind === 'projects' ? 'Cari nama proyek' : current.kind === 'education' ? 'Cari riwayat atau institusi' : 'Cari judul atau nama'} autocomplete="off" /></label>
+              <label>Status<select id="admin-status"><option value="">Semua status</option><option value="draft">Draft</option><option value="published">Dipublikasikan</option></select></label>
+            </div>
+            <button class="admin-button admin-button-primary" id="admin-create" type="button">Tambah {current.kind === 'projects' ? 'proyek' : current.kind === 'experiences' ? 'pengalaman' : current.kind === 'education' ? 'riwayat' : current.kind === 'skills' ? 'entri' : 'informasi'}</button>
+          </div>
+          {current.kind === 'skills' && <div class="admin-tabs" role="group" aria-label="Jenis tech stack"><button type="button" id="tab-skills" aria-pressed="true">Tools & teknologi</button><button type="button" id="tab-categories" aria-pressed="false">Kategori</button></div>}
+          <div class="admin-table-wrap" id="admin-table-wrap" tabindex="0" aria-label="Tabel konten yang dapat digulir mendatar"><table class="admin-table"><thead id="admin-table-head"></thead><tbody id="admin-table-body"></tbody></table></div>
+          <div class="admin-empty" id="admin-empty" hidden><strong id="admin-empty-title"></strong><p id="admin-empty-copy"></p></div>
+          <div class="admin-pagination"><span id="admin-page-status"></span><div><button id="admin-previous" type="button" disabled>← Sebelumnya</button><button id="admin-next" type="button" disabled>Berikutnya →</button></div></div>
+        </section>
+      </div>
+    </section>
+  </div>
+  <script>
+    import '../../scripts/admin-crud';
+  </script>
+</AuthLayout>

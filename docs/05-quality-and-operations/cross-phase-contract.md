@@ -1,0 +1,57 @@
+# Kontrak lintas fase
+
+Dokumen ini membekukan antarmuka yang benar-benar dipakai implementasi lokal dan menunjukkan bagian yang masih menunggu bukti deployment. Sumber utama keputusan produk/arsitektur tetap dokumen di [`portfolio-terminal`](../portfolio-terminal/README.md); bila kode menyimpang, perbarui ADR dan kontrak ini bersama sebelum mengubah konsumen lain.
+
+**Status:** nilai lokal dicatat; kontrak lintas deployment belum dibuktikan. Tidak ada environment preview/production yang telah diverifikasi.
+
+## Freeze API dan rendering
+
+| Aspek | Nilai implementasi | Sumber kebenaran | Tes/bukti dan status |
+|---|---|---|---|
+| Base path endpoint | Publik `/api/v1/public`; autentikasi `/api/v1/auth`; admin `/api/v1/admin`; media publik `/api/v1/public/media/{uuid}`. Browser mengakses API auth/admin melalui Astro same-origin `/api/v1/*`. | `05-backend-and-api-contract.md`; `backend/app/api/v1/`; `frontend/src/pages/api/v1/[...path].ts` | `test_public_api.py`, `test_auth.py`, `test_admin_crud.py`; backend ASGI lokal **DONE**, rewrite browser/deployment **BLOCKED**. |
+| JSON naming | `snake_case`, misalnya `stack_labels`, `next_cursor`, `alt_text`; ID serialisasi UUID string. Respons sukses resource tunggal `{ "data": ... }`; halaman `{ "data": [...], "meta": { "next_cursor": ..., "limit": ... } }`. | `backend/app/schemas/public.py`, `backend/app/schemas/admin.py`, `05-backend-and-api-contract.md` | Model/endpoint tests lokal; belum ada contract test lintas frontend/backend terdeploy. |
+| Pagination/filter | Endpoint list publik default `limit=20`, menerima `1..100` dan opaque URL-safe `cursor`; proyek menerima `featured` dan `type`, pendidikan `kind`. Admin list memakai `limit` maksimum 50 dan status/filter relevan. Cursor invalid → 400; limit invalid → 422. | `backend/app/api/v1/public.py`, `backend/app/api/v1/admin.py`, `05-backend-and-api-contract.md` | `test_public_api.py`, `test_admin_crud.py`; **DONE lokal**. |
+| Slug dan route proyek | Route publik `/proyek/{slug}`; slug huruf kecil, tanpa spasi, tidak diawali/diakhiri `-`, tanpa `--`, unik; detail yang tidak ada/tidak published → 404. | `04-frontend-design-and-routing.md`, `06-database-schema-and-migrations.md`, model `Project`, initial migration | `test_public_api.py`, `test_database_models.py`; **DONE lokal**. |
+| Draft/published | Nilai record `draft` atau `published`; project/experience/education/skill/profil dibaca publik hanya saat published. Profil/contact memakai profil yang sama. Draft tersimpan lewat create/update; endpoint publish memvalidasi kesiapan; unpublish mengubah status tanpa menghapus record. Edit record yang sudah terbit tetap published kecuali explicit unpublish. | `06-database-schema-and-migrations.md`, `05-backend-and-api-contract.md`, `backend/app/api/v1/admin.py`, `backend/app/api/v1/public.py` | Publish/permission tests ada di `test_admin_crud.py` dan `test_public_api.py`; test lokal **DONE**. Direct request pada deployment belum ada. |
+| Media cover/order | Project punya relasi `ProjectImage` dengan satu cover maksimum, `sort_order` unik per proyek; API detail mengirim cover dan gambar dalam urutan; alt wajib untuk media yang digunakan saat publish, caption opsional. Snapshot nama tech stack per proyek dipertahankan meski skill umum berubah. | `08-media-upload-and-storage.md`, `06-database-schema-and-migrations.md`, model/migration, `backend/app/api/v1/media.py` | `test_media_processing.py`, `test_admin_crud.py`, `test_public_api.py`; perubahan urutan/cover diuji lokal. Upload Neon, bucket privat, dan kehilangan objek **BLOCKED**. |
+| Session cookie | Cookie `__Host-portfolio_session` di production dan `portfolio_session` di development/test; opaque token, `Path=/`, `HttpOnly`, `Secure` selain dev/test, `SameSite=Strict`, tanpa Domain; max age 12 jam (konfigurasi absolute TTL). Idle default 30 menit. Database hanya menyimpan hash token. | `07-auth-security-and-threat-model.md`, `backend/app/api/v1/auth.py`, `backend/app/security/dependencies.py`, `backend/app/core/config.py` | `test_auth.py` memeriksa auth/session properties pada API lokal. Browser lintas dua Vercel projects, penerusan Set-Cookie, dan host/cookie jar **BLOCKED**. |
+| CSRF strategy | Browser harus mengirim `Origin` yang sama persis dengan `PUBLIC_SITE_ORIGIN`, header `X-CSRF-Token` turunan session, dan content type JSON untuk mutation. Login juga memeriksa Origin. BFF meneruskan `Cookie`, `Origin`, content type, dan CSRF header ke API serta meneruskan `Set-Cookie` kembali. | `07-auth-security-and-threat-model.md`, `backend/app/security/dependencies.py`, `backend/app/api/v1/auth.py`, `frontend/src/pages/api/v1/[...path].ts` | `test_auth.py`, `test_admin_crud.py`; unit/API lokal **DONE**, browser/deployed proxy **BLOCKED**. |
+| Cache/invalidation | HTML publik, API SSR fetch, API auth/admin, sitemap dan robots menggunakan `no-store`/`private, no-store`; media publik immutable key memakai header media. Tidak ada invalidation cache aplikasi karena konten HTML tidak disimpan bersama. Publikasi terlihat pada request baru setelah transaksi berhasil. | `03-system-architecture-and-decisions.md`, `backend/app/main.py`, `frontend/src/lib/api.ts`, layouts, `sitemap.xml.ts` | Header dan visibility diperiksa pada test API tertentu; CDN/proxy deployment belum diuji. |
+| 404/empty/error | Record tunggal tak ditemukan → HTTP 404. Koleksi kosong → 200 dengan `data: []`; SSR menampilkan empty state. Error terstruktur `{ "error": { "code", "message", "request_id", "fields?" } }`; request ID untuk tracing. DB unavailable → 503 generik. | `05-backend-and-api-contract.md`, `backend/app/schemas/public.py`, `backend/app/main.py`, `frontend/src/lib/api.ts` | `test_public_api.py`, `test_health.py`; lokal **DONE**. |
+| SSR/render | Halaman publik Astro dirender per request dan mengambil hanya data published dari API; direct URL project absent/unpublished menghasilkan halaman 404/noindex. Tidak perlu rebuild untuk menunjukkan perubahan konten. | `03-system-architecture-and-decisions.md`, `04-frontend-design-and-routing.md`, `frontend/src/pages/`, `frontend/src/lib/api.ts` | `npm run check/build` lulus lokal; `API_INTERNAL_URL` preview, direct URL dan tanpa redeploy belum dibuktikan. |
+| SEO/sitemap | Canonical mengikuti URL halaman; error detail memakai noindex dan tanpa canonical; sitemap memuat rute published yang tersedia serta slug project published; `robots.txt` melarang admin/API. | `04-frontend-design-and-routing.md`, `frontend/src/layouts/AppLayout.astro`, `frontend/src/pages/sitemap.xml.ts`, `robots.txt.ts` | Source/build lokal **DONE**; pemeriksaan output HTTP setelah deployment **BLOCKED**. |
+| Preview/prod isolation | Preview harus punya `API_INTERNAL_URL`, `AUTH_PROXY_KEY`, DB branch, bucket dan origin preview sendiri; tidak boleh memakai DB/bucket production. Saat ini belum ada remote Git/Vercel project/branch preview yang dikonfirmasi. Schema telah dimigrasikan ke head pada target `DATABASE_DIRECT_URL` lokal, tetapi identitas environment/branch tidak diverifikasi. | `09-deployment-and-environments.md`, `operations-runbook.md`, `backend/app/core/config.py` | Upgrade Alembic **DONE pada target konfigurasi**; isolasi preview/production **BLOCKED**. Jangan lakukan migrasi atau content write berikutnya sampai target branch dipastikan. |
+
+## Siklus hidup project
+
+| Perubahan | API publik dan route | Sitemap/cache | Media dan pesan admin |
+|---|---|---|---|
+| Buat/simpan draft | Tidak muncul di list/detail publik; detail slug menjawab 404. | Tidak masuk sitemap. `no-store` menghindari cache draft. | Upload draft hanya dapat dilihat lewat admin; simpan memberi status draft. |
+| Publish | Setelah validasi sukses, tampil pada list/detail SSR. Route `/proyek/{slug}` aktif. | Masuk sitemap pada request berikutnya; cache publik no-store. | Gambar ready, alt wajib, cover/order dipertahankan. UI mengonfirmasi status terbit. |
+| Edit project published | Tetap published; nilai baru tampil setelah transaksi sukses/request berikutnya. | Tidak ada purge karena no-store; sitemap dibuat ulang pada request. | Metadata/cover/order update harus konsisten dengan relasi proyek. |
+| Unpublish | Hilang dari public API; direct detail kembali 404/noindex. | Keluar dari sitemap pada request berikutnya. | Objek dapat tetap tersimpan dan tidak otomatis terhapus; UI menunjukkan draft. |
+| Delete | Admin delete menghapus record; endpoint publik jadi 404. Penghapusan membutuhkan konfirmasi di UI. | Keluar dari sitemap pada request berikutnya. | Referensi relasi dan cleanup object mengikuti aturan media; jangan anggap DB delete sebagai bukti object terhapus. |
+
+Perubahan perilaku state memerlukan update route tests dan pemeriksaan media serta sitemap. Publish dan unpublish pada database remote belum diuji.
+
+## Satu sumber data pengalaman kerja
+
+`Pengalaman` dan `Riwayat Pekerjaan` mengambil endpoint/record `experiences` yang sama. `/pengalaman` menyajikan ringkasan dan maksimal tiga highlights untuk setiap entry published; `/riwayat-pekerjaan` menyajikan ringkasan dan seluruh highlights. Tidak ada tabel atau collection kedua atau field pilihan entry editorial yang terpisah. Perubahan pada satu entry akan memengaruhi kedua halaman saat request SSR berikutnya.
+
+## Browser → API: batas bukti
+
+Diagram same-origin BFF menjelaskan target. Kode lokal mengirim browser ke `/api/v1/*`, meneruskan cookie/Origin/CSRF, dan menyalin `Set-Cookie`; FastAPI memeriksa Origin yang dikonfigurasi dan session di DB. Tetapi jalur dua Vercel projects belum memiliki project/preview untuk POC. Header `Host`, domain cookie, preview domain yang berubah, redirect, cache dan request body media perlu diperiksa pada browser sebelum menyebut kontrak deployment lulus. Host header tidak sengaja diteruskan dari browser; upstream memakai host API, sehingga validasi backend harus tetap memakai exact `PUBLIC_SITE_ORIGIN` dan trusted-host setting yang sesuai.
+
+## Gate/regression di setiap fase
+
+- Draft tidak muncul di public API, SSR, detail route atau sitemap; detail unpublished menjawab 404/noindex.
+- Anonymous/expired/revoked session tidak dapat membaca admin data sensitif atau mutate; mutation tanpa Origin/CSRF ditolak.
+- Cover, urutan gambar, alt dan caption tetap sama antara admin read/write, public DTO, SSR dan sitemap. Uji objek media langsung untuk draft/published setelah storage preview tersedia.
+- Konten published baru muncul pada SSR dan SEO tanpa rebuild; cache policy tetap no-store sampai invalidation dapat dibuktikan.
+- Mengubah satu `Experience` terlihat di `/pengalaman` dan `/riwayat-pekerjaan`, tanpa record salinan.
+- Jalankan viewport 320–390 px, keyboard/focus, zoom/reflow dan reduced motion saat browser acceptance; build saja bukan bukti aksesibilitas.
+- Fixtures dan prototype tidak dipromosikan sebagai fakta pribadi. Tidak ada `.env`, secret, atau nilai credential pada Git, browser response atau bundle.
+
+### Bukti lokal saat dibekukan
+
+Pada 2026-11-19, backend Ruff/mypy bersih dan `pytest` lulus (39 tests); Astro check melaporkan 26 file tanpa error/warning/hint dan build Vercel server berhasil. `.env` lokal terabaikan Git. Setelah itu Alembic mencapai `b7f4c7a1d2e9 (head)` pada target URL langsung yang dikonfigurasi; `/ready` dan daftar pengalaman publik menjawab 200, dengan daftar kosong. Identitas target belum diverifikasi sebagai preview. Browser acceptance, external deployment, object storage write/read, restore dan preview isolation tetap **BLOCKED**.

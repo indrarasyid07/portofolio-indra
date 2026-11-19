@@ -1,0 +1,7 @@
+---
+import '../styles/site.css';
+const { title, description } = Astro.props;
+Astro.response.headers.set('Cache-Control', 'private, no-store'); Astro.response.headers.set('X-Content-Type-Options', 'nosniff'); Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); Astro.response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()'); Astro.response.headers.set('X-Frame-Options', 'DENY');
+if (import.meta.env.PROD) Astro.response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+---
+<!doctype html><html lang="id"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content={description} /><meta name="robots" content="noindex,nofollow" /><meta name="theme-color" content="#0e140f" /><title>{title}</title></head><body><a class="skip-link" href="#main-content">Lewati ke konten utama</a><slot /></body></html>

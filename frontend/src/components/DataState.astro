@@ -1,0 +1,9 @@
+---
+interface Props { message: string; retry?: string }
+const { message, retry } = Astro.props;
+---
+<div class="data-state" role="status">
+  <span class="state-mark" aria-hidden="true">{retry ? '!' : '∅'}</span>
+  <p>{message}</p>
+  {retry && <a href={retry}>Muat ulang <span aria-hidden="true">↻</span></a>}
+</div>

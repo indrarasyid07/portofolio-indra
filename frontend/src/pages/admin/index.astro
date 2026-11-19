@@ -1,0 +1,95 @@
+---
+import AuthLayout from '../../layouts/AuthLayout.astro';
+import { LayoutDashboard, FolderKanban, BriefcaseBusiness, GraduationCap, Braces, Settings, ExternalLink, LogOut, ChevronRight, CircleUserRound } from '@lucide/astro';
+import { API_INTERNAL_URL } from 'astro:env/server';
+import { requireAdminPage } from '../../lib/admin-auth';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Content-Type-Options', 'nosniff');
+Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+Astro.response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+Astro.response.headers.set('X-Frame-Options', 'DENY');
+if (import.meta.env.PROD) {
+  Astro.response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+}
+
+const auth = await requireAdminPage(Astro.request, Astro.redirect);
+if (auth instanceof Response) return auth;
+let serviceError = auth.serviceError;
+let overview: Record<string, number | string | null> | null = null;
+if (!serviceError) {
+  try {
+    const base = API_INTERNAL_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
+    const response = await fetch(`${base.replace(/\/$/, '')}/api/v1/admin/overview`, {
+      headers: { cookie: Astro.request.headers.get('cookie') ?? '', accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4500),
+    });
+    if (response.status === 401) {
+      return Astro.redirect(`/admin/login?returnTo=${encodeURIComponent('/admin')}&expired=1`, 303);
+    }
+    if (!response.ok) serviceError = true;
+    else overview = await response.json();
+  } catch { serviceError = true; }
+}
+if (serviceError) Astro.response.status = 503;
+const sections = [
+  { href: '/admin/proyek', label: 'Proyek', command: 'projects', icon: 'projects' },
+  { href: '/admin/pengalaman', label: 'Pengalaman / karier', command: 'experience', icon: 'experience' },
+  { href: '/admin/pendidikan', label: 'Pendidikan', command: 'education', icon: 'education' },
+  { href: '/admin/tech-stack', label: 'Tech stack', command: 'skills', icon: 'skills' },
+  { href: '/admin/profil', label: 'Profil & pengaturan', command: 'profile', icon: 'profile' },
+];
+---
+<AuthLayout title="Admin | Portofolio" description="Ringkasan pengelolaan portofolio.">
+  <div class="admin-layout admin-dashboard-layout">
+    <aside class="admin-sidebar" aria-label="Navigasi admin">
+      <a class="logo admin-brand" href="/admin"><span class="logo-glyph">~/</span> indra.rasyid</a>
+      <p class="sidebar-caption">ROOT / CONTENT MANAGEMENT</p>
+      <nav class="admin-nav" aria-label="Navigasi admin">
+        <a href="/admin" aria-current="page"><LayoutDashboard size={16} stroke-width={1.7} aria-hidden="true" /><span>Overview</span><b>01</b></a>
+        <a href="/admin/proyek"><FolderKanban size={16} stroke-width={1.7} aria-hidden="true" /><span>Proyek</span><b>02</b></a>
+        <a href="/admin/pengalaman"><BriefcaseBusiness size={16} stroke-width={1.7} aria-hidden="true" /><span>Pengalaman / karier</span><b>03</b></a>
+        <a href="/admin/pendidikan"><GraduationCap size={16} stroke-width={1.7} aria-hidden="true" /><span>Pendidikan</span><b>04</b></a>
+        <a href="/admin/tech-stack"><Braces size={16} stroke-width={1.7} aria-hidden="true" /><span>Tech stack</span><b>05</b></a>
+        <a href="/admin/profil"><Settings size={16} stroke-width={1.7} aria-hidden="true" /><span>Profil & pengaturan</span><b>06</b></a>
+      </nav>
+      <div class="sidebar-bottom"><a href="/" target="_blank" rel="noopener noreferrer"><ExternalLink size={14} stroke-width={1.8} aria-hidden="true" /> Buka portofolio</a><button type="button" id="logout-button"><LogOut size={14} stroke-width={1.8} aria-hidden="true" /> Keluar dari panel</button><span class="notice-small"><CircleUserRound size={13} stroke-width={1.8} aria-hidden="true" /> {auth.username} / ADMIN SESSION</span></div>
+    </aside>
+    <section class="admin-main">
+      <header class="admin-topline"><span>~/admin <span class="online">● {serviceError ? 'API OFFLINE' : 'LOCAL CONNECTED'}</span></span><span>CONTENT WORKSPACE / v1.0</span></header>
+      <section class="admin-content" id="admin-main-content" tabindex="-1">
+        <div class="admin-welcome"><div><p class="eyebrow"><span>ADMIN / ROOT</span> DASHBOARD</p><h1>Workspace overview<span class="accent-dot">.</span></h1><p>Kelola data portofolio tanpa mengubah HTML secara manual.</p></div><div class="admin-toolbar"><a class="btn btn-outline btn-small" href="/" target="_blank" rel="noopener noreferrer">Lihat situs <ExternalLink size={14} stroke-width={1.8} aria-hidden="true" /></a></div></div>
+        {serviceError ? <div class="admin-empty admin-error" role="alert"><strong>Data belum dapat dimuat.</strong><p>API tidak merespons. Periksa konfigurasi dan coba lagi.</p><a class="admin-button" href="/admin">Coba lagi</a></div> : <>
+          <section class="admin-overview-grid" aria-label="Ringkasan konten">
+            <a class="admin-stat" href="/admin/proyek"><span>PROYEK</span><strong>{overview?.projects_total ?? 0}</strong><small>{overview?.projects_published ?? 0} TERBIT · BUKA KOLEKSI <ChevronRight size={12} aria-hidden="true" /></small></a>
+            <a class="admin-stat" href="/admin/pengalaman"><span>PENGALAMAN / KARIER</span><strong>{overview?.experiences_total ?? 0}</strong><small>BUKA KOLEKSI <ChevronRight size={12} aria-hidden="true" /></small></a>
+            <a class="admin-stat" href="/admin/pendidikan"><span>PENDIDIKAN</span><strong>{overview?.education_total ?? 0}</strong><small>BUKA KOLEKSI <ChevronRight size={12} aria-hidden="true" /></small></a>
+            <a class="admin-stat" href="/admin/tech-stack"><span>TECH STACK</span><strong>{overview?.skills_total ?? 0}</strong><small>BUKA KOLEKSI <ChevronRight size={12} aria-hidden="true" /></small></a>
+          </section>
+          <div class="admin-panel-heading"><div><h2>System notes</h2><p>Status koneksi dan penyimpanan konten.</p></div><span class="meta-top">DATABASE / {serviceError ? 'UNAVAILABLE' : 'CONNECTED'}</span></div>
+          <div class="admin-dashboard-note"><strong>{serviceError ? 'API / OFFLINE' : 'API / CONNECTED'}</strong><br />Data portofolio dikelola melalui backend dan database. Perubahan pada panel tersimpan di server setelah operasi berhasil.</div>
+          <div class="admin-panel-heading"><div><h2>Quick actions</h2><p>Pilih bagian portofolio yang ingin dikelola.</p></div></div>
+          <div class="data-actions admin-quick-actions" aria-label="Kelola konten">{sections.map((section) => <a href={section.href}><code>$ {section.command}</code><span>{section.label}</span><ExternalLink size={13} stroke-width={1.8} aria-hidden="true" /></a>)}</div>
+        </>}
+      </section>
+    </section>
+  </div>
+  <script>
+    const button = document.querySelector<HTMLButtonElement>('#logout-button');
+    button?.addEventListener('click', async () => {
+      if (!button) return;
+      button.disabled = true;
+      try {
+        const sessionResponse = await fetch('/api/v1/auth/session', { credentials: 'same-origin' });
+        if (sessionResponse.status === 401) { window.location.replace('/admin/login?expired=1'); return; }
+        if (!sessionResponse.ok) throw new Error('session');
+        const session = await sessionResponse.json();
+        const response = await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf_token }, body: '{}' });
+        if (response.ok) window.location.replace('/admin/login');
+        else throw new Error('logout');
+      } catch { window.alert('Logout belum berhasil. Coba lagi.'); button.disabled = false; }
+    });
+  </script>
+</AuthLayout>

@@ -1,0 +1,10 @@
+---
+interface Props { command: string; eyebrow: string; title: string; summary: string }
+const { command, eyebrow, title, summary } = Astro.props;
+---
+<div class="route-label"><span class="route-prompt">$</span> {command}</div>
+<header class="page-intro">
+  <p class="eyebrow">{eyebrow}</p>
+  <h1>{title}</h1>
+  <p class="page-summary">{summary}</p>
+</header>

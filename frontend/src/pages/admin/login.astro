@@ -1,0 +1,67 @@
+---
+import AuthLayout from '../../layouts/AuthLayout.astro';
+
+function safeReturnTo(value: string | null): string {
+  if (!value || !/^\/admin(?:\/[A-Za-z0-9._~-]+)*\/?$/.test(value)) return '/admin';
+  if (value.split('/').some((segment) => segment === '.' || segment === '..')) return '/admin';
+  return value;
+}
+
+const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
+const expired = Astro.url.searchParams.get('expired') === '1';
+---
+<AuthLayout title="Login Admin | Portofolio" description="Login ke ruang pengelolaan portofolio.">
+  <main class="auth-page" id="main-content" data-return-to={returnTo}>
+    <section class="auth-aside"><a class="logo" href="/"><span class="logo-glyph">~/</span> indra.rasyid <span class="auth-path">/admin</span></a><div><span class="eyebrow"><span>ACCESS CONTROL</span> / ROOT</span><div class="big-auth-symbol" aria-hidden="true">$ _</div><h1>Private<br /><em>workspace.</em></h1><p>Kelola profil, pengalaman kerja, proyek, media, pendidikan, dan tech stack dari panel admin.</p></div><span class="auth-aside-bottom">AUTHENTICATED SESSION / PRIVATE</span></section>
+    <section class="auth-main"><div class="auth-box"><span class="auth-mini">$ sudo login --admin</span><h2 id="login-title">Masuk panel.</h2>
+    <p>Gunakan akun administrator untuk melanjutkan.</p>
+    {expired && <p class="login-notice" role="status">Sesi telah berakhir. Silakan masuk kembali; perubahan yang belum dikirim tidak tersimpan.</p>}
+    <form class="auth-form login-form" id="login-form">
+      <label for="username">Nama pengguna</label>
+      <input id="username" name="username" autocomplete="username" required minlength="3" maxlength="80" pattern="[A-Za-z0-9._-]+" autocapitalize="none" spellcheck="false" />
+      <label for="password">Kata sandi</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" />
+      <p class="form-message" id="login-status" role="status" aria-live="polite"></p>
+      <button class="btn btn-primary" type="submit"><span>Masuk ke workspace ↗</span></button>
+    </form>
+    <a href="/" class="auth-return">← Kembali ke portofolio</a></div></section>
+  </main>
+  <script>
+    const form = document.querySelector<HTMLFormElement>('#login-form');
+    const statusText = document.querySelector<HTMLElement>('#login-status');
+    const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const returnTo = document.querySelector<HTMLElement>('.auth-page')?.dataset.returnTo ?? '/admin';
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity() || !submitButton || !statusText) return;
+      const fields = new FormData(form);
+      submitButton.disabled = true;
+      statusText.textContent = 'Memeriksa kredensial…';
+      try {
+        const response = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ username: fields.get('username'), password: fields.get('password') }),
+        });
+        if (response.ok) {
+          window.location.replace(returnTo);
+          return;
+        }
+        if (response.status === 401) statusText.textContent = 'Nama pengguna atau kata sandi tidak valid.';
+        else if (response.status === 429) statusText.textContent = 'Terlalu banyak percobaan. Tunggu sebentar sebelum mencoba lagi.';
+        else if (response.status === 503) statusText.textContent = 'Layanan autentikasi sementara tidak tersedia. Coba lagi nanti.';
+        else statusText.textContent = 'Login belum dapat diproses. Periksa isian lalu coba lagi.';
+      } catch {
+        statusText.textContent = 'Tidak dapat terhubung ke layanan login. Coba lagi nanti.';
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    fetch('/api/v1/auth/session', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then((response) => { if (response.ok) window.location.replace(returnTo); })
+      .catch(() => undefined);
+  </script>
+</AuthLayout>
