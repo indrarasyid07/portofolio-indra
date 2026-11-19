@@ -10,6 +10,22 @@ export default defineConfig({
   site: env.SITE_URL ?? 'http://localhost:4321',
   output: 'server',
   adapter: vercel(),
+  devToolbar: { enabled: false },
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' https:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+        "form-action 'self'",
+      ],
+      scriptDirective: { resources: ["'self'"] },
+      styleDirective: { resources: ["'self'"] },
+    },
+  },
   env: {
     schema: {
       API_INTERNAL_URL: envField.string({ context: 'server', access: 'public', optional: true }),

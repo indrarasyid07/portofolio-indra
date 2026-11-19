@@ -11,7 +11,6 @@ Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 Astro.response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 Astro.response.headers.set('X-Frame-Options', 'DENY');
 if (import.meta.env.PROD) {
-  Astro.response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
 }
 
 const auth = await requireAdminPage(Astro.request, Astro.redirect);
